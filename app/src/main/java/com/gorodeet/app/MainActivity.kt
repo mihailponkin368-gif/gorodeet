@@ -1,13 +1,13 @@
 package com.gorodeet.app
 
+import android.app.Activity
 import android.os.Bundle
 import android.webkit.*
-import androidx.appcompat.app.AppCompatActivity
 import java.io.ByteArrayInputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : Activity() {
 
     private lateinit var webView: WebView
 
