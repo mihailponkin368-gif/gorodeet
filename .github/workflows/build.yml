@@ -7,10 +7,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Move app file into Android project
-        run: |
-          mkdir -p app/src/main/assets
-          cp index.html app/src/main/assets/index.html
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
