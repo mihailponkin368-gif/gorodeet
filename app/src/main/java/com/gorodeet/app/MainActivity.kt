@@ -19,14 +19,30 @@ class MainActivity : Activity() {
         webView.settings.domStorageEnabled = true
 
         webView.webViewClient = object : WebViewClient() {
+
+            // Блокируем любые переходы кроме нашего файла и API транспорта
+            override fun shouldOverrideUrlLoading(
+                view: WebView?,
+                request: WebResourceRequest?
+            ): Boolean {
+                val url = request?.url?.toString() ?: return true
+                return !(url.startsWith("file:///android_asset/")
+                        || url.startsWith("https://transport.orgp.spb.ru"))
+            }
+
+            // Прокси: пропускаем только точный хост API по https
             override fun shouldInterceptRequest(
                 view: WebView?,
                 request: WebResourceRequest?
             ): WebResourceResponse? {
-                val url = request?.url?.toString() ?: return null
-                if (!url.contains("transport.orgp.spb.ru")) return null
+                val uri = request?.url ?: return null
+                val host = uri.host ?: return null
+                if (uri.scheme != "https") return null
+                if (host != "transport.orgp.spb.ru" &&
+                    !host.endsWith(".transport.orgp.spb.ru")) return null
+
                 return try {
-                    val conn = URL(url).openConnection() as HttpURLConnection
+                    val conn = URL(uri.toString()).openConnection() as HttpURLConnection
                     conn.connectTimeout = 10000
                     conn.readTimeout = 10000
                     val code = conn.responseCode
@@ -37,7 +53,12 @@ class MainActivity : Activity() {
                         ByteArrayInputStream(stream?.readBytes() ?: ByteArray(0))
                     )
                 } catch (e: Exception) {
-                    null
+                    // При ошибке не пускаем запрос наружу, а отдаём пустой ответ
+                    WebResourceResponse(
+                        "text/plain",
+                        "utf-8",
+                        ByteArrayInputStream(ByteArray(0))
+                    )
                 }
             }
         }
